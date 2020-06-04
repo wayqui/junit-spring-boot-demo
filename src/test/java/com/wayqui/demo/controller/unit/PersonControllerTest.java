@@ -1,8 +1,6 @@
 package com.wayqui.demo.controller.unit;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
 import com.google.gson.reflect.TypeToken;
 import com.wayqui.demo.controller.PersonController;
 import com.wayqui.demo.controller.response.PersonResponse;
@@ -43,15 +41,6 @@ public class PersonControllerTest {
     @MockBean
     private PersonService personService;
 
-    private static final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(
-                    LocalDate.class,
-                    (JsonDeserializer<LocalDate>) (
-                            json,
-                            type,
-                            jsonDeserializationContext) -> LocalDate.parse(json.getAsJsonPrimitive().getAsString()))
-            .create();
-
     private final Type listType = new TypeToken<ArrayList<PersonResponse>>(){}.getType();
 
     private PersonDto person = PersonDto.builder()
@@ -80,7 +69,7 @@ public class PersonControllerTest {
                 .andReturn();
 
         // Then
-        List<PersonResponse> personsResponse = gson.fromJson(result.getResponse().getContentAsString(), listType);
+        List<PersonResponse> personsResponse = new GsonBuilder().create().fromJson(result.getResponse().getContentAsString(), listType);
         assertEquals(persons.size(), personsResponse.size());
         personsResponse.forEach(personResponse -> {
             assertEquals(person.getAge(), personResponse.getAge());
