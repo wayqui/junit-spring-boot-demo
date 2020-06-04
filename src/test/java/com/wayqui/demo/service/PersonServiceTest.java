@@ -1,12 +1,14 @@
 package com.wayqui.demo.service;
 
-import com.wayqui.demo.dao.PersonDao;
+import com.wayqui.demo.dao.PersonRepository;
 import com.wayqui.demo.dto.PersonDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
@@ -19,7 +21,7 @@ class PersonServiceTest {
     PersonServiceImpl personService;
 
     @Mock
-    PersonDao personDao;
+    PersonRepository repository;
     
     @Test
     public void getAllPersonsTests() {
