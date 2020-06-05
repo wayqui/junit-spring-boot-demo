@@ -1,11 +1,13 @@
 package com.wayqui.demo.controller.response;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDate;
 
-@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class PersonResponse {
     private String id;

@@ -1,8 +1,10 @@
 package com.wayqui.demo.controller.unit;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.wayqui.demo.controller.PersonController;
+import com.wayqui.demo.controller.request.PersonRequest;
 import com.wayqui.demo.controller.response.PersonResponse;
 import com.wayqui.demo.dto.PersonDto;
 import com.wayqui.demo.mapper.PersonMapper;
@@ -47,7 +49,6 @@ public class PersonControllerTest {
 
     @Test
     public void given_mock_data_when_get_all_persons_then_returns_ok() throws Exception {
-
         // Given
         RequestBuilder request = MockMvcRequestBuilders
                 .get("/persons")
@@ -55,6 +56,7 @@ public class PersonControllerTest {
 
         // When
         when(personService.getAllPersons()).thenReturn(PERSONS_DTO_MOCKED);
+
         MvcResult result = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn();
@@ -84,7 +86,6 @@ public class PersonControllerTest {
         });
     }
 
-
     @Test
     public void given_existing_id_when_get_element_then_returns_ok() throws Exception {
         // Given
@@ -100,8 +101,7 @@ public class PersonControllerTest {
                 .andReturn();
 
         // Then
-        PersonResponse personResponse = new GsonBuilder()
-                .create()
+        PersonResponse personResponse = new GsonBuilder().create()
                 .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
 
         assertNotNull(personResponse);
@@ -124,8 +124,7 @@ public class PersonControllerTest {
                 .andReturn();
 
         // Then
-        PersonResponse personResponse = new GsonBuilder()
-                .create()
+        PersonResponse personResponse = new GsonBuilder().create()
                 .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
         assertNotNull(personResponse);
         assertNull(personResponse.getId());
@@ -133,5 +132,34 @@ public class PersonControllerTest {
         assertNull(personResponse.getLastName());
         assertNull(personResponse.getEmail());
         assertNull(personResponse.getAge());
+    }
+
+    @Test
+    public void given_a_new_person_when_post_element_then_returns_created() throws Exception {
+        // Given
+        PersonRequest newPerson = PersonRequest.builder()
+                .birthDate(LocalDate.of(1981, 1, 1))
+                .email("newperson@gmail.com")
+                .firstName("Alex")
+                .lastName("Supertramp")
+                .build();
+
+        RequestBuilder builder = MockMvcRequestBuilders
+                .post("/persons")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new Gson().toJson(newPerson))
+                .accept(MediaType.APPLICATION_JSON);
+
+        // When
+        MvcResult result = mockMvc.perform(builder).andExpect(status().isCreated()).andReturn();
+
+        // Then
+        PersonResponse personResponse = new GsonBuilder().create()
+                .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
+        assertNotNull(personResponse);
+        assertEquals(newPerson.getBirthDate(), personResponse.getBirthDate());
+        assertEquals(newPerson.getEmail(), personResponse.getEmail());
+        assertEquals(newPerson.getFirstName(), personResponse.getFirstName());
+        assertEquals(newPerson.getLastName(), personResponse.getLastName());
     }
 }
