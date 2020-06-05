@@ -4,7 +4,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.wayqui.demo.controller.PersonController;
 import com.wayqui.demo.controller.response.PersonResponse;
-import com.wayqui.demo.dto.PersonDto;
 import com.wayqui.demo.service.PersonService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -21,12 +20,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.lang.reflect.Type;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
+import static com.wayqui.demo.utils.MockData.PERSONS_DTO_MOCKED;
+import static com.wayqui.demo.utils.MockData.PERSONS_MOCKED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,21 +43,11 @@ public class PersonControllerTest {
     @MockBean
     private PersonService personService;
 
-    private final Type listType = new TypeToken<ArrayList<PersonResponse>>(){}.getType();
-
-    private PersonDto personDto = PersonDto.builder()
-            .age(20)
-            .id(UUID.randomUUID().toString())
-            .birthDate(LocalDate.now())
-            .firstName("Jose")
-            .lastName("Bustamante")
-            .email("joshelito@gmail.com")
-            .id(UUID.randomUUID().toString())
-            .build();
-    private List<PersonDto> personDtos = Collections.singletonList(personDto);
+    private final Type listType = new TypeToken<ArrayList<PersonResponse>>() {
+    }.getType();
 
     @Test
-    void getOnePersonCorrectlyTest() throws Exception {
+    public void given_mock_data_when_get_all_persons_then_returns_ok() throws Exception {
 
         // Given
         RequestBuilder request = MockMvcRequestBuilders
@@ -63,21 +55,33 @@ public class PersonControllerTest {
                 .accept(MediaType.APPLICATION_JSON);
 
         // When
-        when(personService.getAllPersons()).thenReturn(personDtos);
+        when(personService.getAllPersons()).thenReturn(PERSONS_DTO_MOCKED);
         MvcResult result = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn();
 
         // Then
-        List<PersonResponse> personsResponse = new GsonBuilder().create().fromJson(result.getResponse().getContentAsString(), listType);
-        assertEquals(personDtos.size(), personsResponse.size());
-        personsResponse.forEach(personResponse -> {
-            assertEquals(personDto.getAge(), personResponse.getAge());
-            assertEquals(personDto.getBirthDate(), personResponse.getBirthDate());
-            assertEquals(personDto.getEmail(), personResponse.getEmail());
-            assertEquals(personDto.getFirstName(), personResponse.getFirstName());
-            assertEquals(personDto.getLastName(), personResponse.getLastName());
-            assertEquals(personDto.getId(), personResponse.getId());
+        List<PersonResponse> personsResponse = new GsonBuilder()
+                .create()
+                .fromJson(result.getResponse().getContentAsString(), listType);
+
+        assertEquals(PERSONS_DTO_MOCKED.size(), personsResponse.size());
+
+        PERSONS_MOCKED.forEach(personMocked -> {
+            Optional<PersonResponse> personFound = personsResponse
+                    .stream()
+                    .filter(p -> p.getId().equals(personMocked.getId()))
+                    .findFirst();
+            assertTrue(personFound.isPresent());
+            PersonResponse personResponse = personFound.get();
+            assertEquals(personMocked.getBirthDate(), personResponse.getBirthDate());
+            assertEquals(personMocked.getId(), personResponse.getId());
+            assertEquals(personMocked.getEmail(), personResponse.getEmail());
+            assertEquals(personMocked.getFirstName(), personResponse.getFirstName());
+            assertEquals(personMocked.getLastName(), personResponse.getLastName());
+            int expectedAge = Period.between(personMocked.getBirthDate(), LocalDate.now())
+                    .getYears();
+            assertEquals(expectedAge, personResponse.getAge());
         });
     }
 }
