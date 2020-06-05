@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.wayqui.demo.controller.PersonController;
 import com.wayqui.demo.controller.response.PersonResponse;
+import com.wayqui.demo.dto.PersonDto;
 import com.wayqui.demo.service.PersonService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -21,14 +22,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.wayqui.demo.utils.MockData.PERSONS_DTO_MOCKED;
 import static com.wayqui.demo.utils.MockData.PERSONS_MOCKED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -83,5 +81,29 @@ public class PersonControllerTest {
                     .getYears();
             assertEquals(expectedAge, personResponse.getAge());
         });
+    }
+
+
+    @Test
+    public void given_existing_id_when_get_element_then_returns_ok() throws Exception {
+        // Given
+        PersonDto dto = PERSONS_DTO_MOCKED.stream().findFirst().get();
+        RequestBuilder request = MockMvcRequestBuilders
+                .get("/persons/{id}", dto.getId())
+                .accept(MediaType.APPLICATION_JSON);
+
+        // When
+        when(personService.getAllPersons()).thenReturn(Collections.singletonList(dto));
+        MvcResult result = mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // Then
+        PersonResponse personResponse = new GsonBuilder()
+                .create()
+                .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
+
+        assertNotNull(personResponse);
+        assertEquals(dto.getId(), personResponse.getId());
     }
 }
