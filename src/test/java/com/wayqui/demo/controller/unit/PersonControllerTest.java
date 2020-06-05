@@ -43,7 +43,7 @@ public class PersonControllerTest {
 
     private final Type listType = new TypeToken<ArrayList<PersonResponse>>(){}.getType();
 
-    private PersonDto person = PersonDto.builder()
+    private PersonDto personDto = PersonDto.builder()
             .age(20)
             .id(UUID.randomUUID().toString())
             .birthDate(LocalDate.now())
@@ -52,7 +52,7 @@ public class PersonControllerTest {
             .email("joshelito@gmail.com")
             .id(UUID.randomUUID().toString())
             .build();
-    private List<PersonDto> persons = Collections.singletonList(person);
+    private List<PersonDto> personDtos = Collections.singletonList(personDto);
 
     @Test
     void getOnePersonCorrectlyTest() throws Exception {
@@ -63,21 +63,21 @@ public class PersonControllerTest {
                 .accept(MediaType.APPLICATION_JSON);
 
         // When
-        when(personService.getAllPersons()).thenReturn(persons);
+        when(personService.getAllPersons()).thenReturn(personDtos);
         MvcResult result = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn();
 
         // Then
         List<PersonResponse> personsResponse = new GsonBuilder().create().fromJson(result.getResponse().getContentAsString(), listType);
-        assertEquals(persons.size(), personsResponse.size());
+        assertEquals(personDtos.size(), personsResponse.size());
         personsResponse.forEach(personResponse -> {
-            assertEquals(person.getAge(), personResponse.getAge());
-            assertEquals(person.getBirthDate(), personResponse.getBirthDate());
-            assertEquals(person.getEmail(), personResponse.getEmail());
-            assertEquals(person.getFirstName(), personResponse.getFirstName());
-            assertEquals(person.getLastName(), personResponse.getLastName());
-            assertEquals(person.getId(), personResponse.getId());
+            assertEquals(personDto.getAge(), personResponse.getAge());
+            assertEquals(personDto.getBirthDate(), personResponse.getBirthDate());
+            assertEquals(personDto.getEmail(), personResponse.getEmail());
+            assertEquals(personDto.getFirstName(), personResponse.getFirstName());
+            assertEquals(personDto.getLastName(), personResponse.getLastName());
+            assertEquals(personDto.getId(), personResponse.getId());
         });
     }
 }
