@@ -1,13 +1,16 @@
 package com.wayqui.demo.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDate;
 
-@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class PersonDto {
+
     private String id;
     private String firstName;
     private String lastName;

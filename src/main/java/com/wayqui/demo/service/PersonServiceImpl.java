@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PersonServiceImpl implements PersonService {
@@ -26,5 +27,16 @@ public class PersonServiceImpl implements PersonService {
             dto.setAge(age);
         });
         return personsDto;
+    }
+
+    @Override
+    public PersonDto getPerson(String id) {
+        Optional<Person> personFound = repository.findById(id);
+        PersonDto personDto = new PersonDto();
+        if (personFound.isPresent()) {
+            personDto = PersonMapper.INSTANCE.entityToDto(personFound.get());
+            personDto.setAge(Period.between(personDto.getBirthDate(), LocalDate.now()).getYears());
+        }
+        return personDto;
     }
 }

@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.wayqui.demo.controller.PersonController;
 import com.wayqui.demo.controller.response.PersonResponse;
 import com.wayqui.demo.dto.PersonDto;
+import com.wayqui.demo.mapper.PersonMapper;
 import com.wayqui.demo.service.PersonService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -87,13 +88,13 @@ public class PersonControllerTest {
     @Test
     public void given_existing_id_when_get_element_then_returns_ok() throws Exception {
         // Given
-        PersonDto dto = PERSONS_DTO_MOCKED.stream().findFirst().get();
+        PersonDto personDto = PERSONS_DTO_MOCKED.stream().findFirst().get();
         RequestBuilder request = MockMvcRequestBuilders
-                .get("/persons/{id}", dto.getId())
+                .get("/persons/{id}", personDto.getId())
                 .accept(MediaType.APPLICATION_JSON);
 
         // When
-        when(personService.getAllPersons()).thenReturn(Collections.singletonList(dto));
+        when(personService.getPerson(personDto.getId())).thenReturn(personDto);
         MvcResult result = mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andReturn();
@@ -104,6 +105,33 @@ public class PersonControllerTest {
                 .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
 
         assertNotNull(personResponse);
-        assertEquals(dto.getId(), personResponse.getId());
+        assertEquals(PersonMapper.INSTANCE.dtoToResponse(personDto), personResponse);
+    }
+
+    @Test
+    public void given_non_existent_id_when_get_element_then_returns_not_found() throws Exception {
+        // Given
+        String nonExistentId = UUID.randomUUID().toString();
+
+        RequestBuilder request = MockMvcRequestBuilders
+                .get("/persons/{id}", nonExistentId)
+                .accept(MediaType.APPLICATION_JSON);
+
+        // When
+        when(personService.getPerson(nonExistentId)).thenReturn(new PersonDto());
+        MvcResult result = mockMvc.perform(request)
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        // Then
+        PersonResponse personResponse = new GsonBuilder()
+                .create()
+                .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
+        assertNotNull(personResponse);
+        assertNull(personResponse.getId());
+        assertNull(personResponse.getFirstName());
+        assertNull(personResponse.getLastName());
+        assertNull(personResponse.getEmail());
+        assertNull(personResponse.getAge());
     }
 }

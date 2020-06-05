@@ -2,6 +2,8 @@ package com.wayqui.demo.service;
 
 import com.wayqui.demo.dao.PersonRepository;
 import com.wayqui.demo.dto.PersonDto;
+import com.wayqui.demo.entity.Person;
+import com.wayqui.demo.mapper.PersonMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,6 +14,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.wayqui.demo.utils.MockData.PERSONS_MOCKED;
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,12 +52,47 @@ class PersonServiceTest {
             assertEquals(personMocked.getBirthDate(), personDto.getBirthDate());
             assertEquals(personMocked.getId(), personDto.getId());
             assertEquals(personMocked.getEmail(), personDto.getEmail());
-            assertEquals(personMocked.getFirstName(), personDto.getLastName());
+            assertEquals(personMocked.getFirstName(), personDto.getFirstName());
             assertEquals(personMocked.getLastName(), personDto.getLastName());
             int expectedAge = Period.between(personMocked.getBirthDate(), LocalDate.now())
                     .getYears();
             assertEquals(expectedAge, personDto.getAge());
         });
     }
+
+    @Test
+    public void getSinglePersonWithExistentIdTest() {
+        // Given
+        Person aPerson = PERSONS_MOCKED.stream().findFirst().get();
+
+        // When
+        when(repository.findById(aPerson.getId())).thenReturn(Optional.of(aPerson));
+        PersonDto personFound = personService.getPerson(aPerson.getId());
+        
+        // Then
+        assertNotNull(personFound);
+        int expectedAge = Period.between(aPerson.getBirthDate(), LocalDate.now())
+                .getYears();
+        assertEquals(expectedAge, personFound.getAge());
+        assertEquals(aPerson, PersonMapper.INSTANCE.dtoToEntity(personFound));
+    }
+
+    @Test
+    public void getSinglePersonWithNonExistentIdTest() {
+        // Given
+        String nonExistentId = UUID.randomUUID().toString();
+
+        // When
+        PersonDto nonExistentPerson = personService.getPerson(nonExistentId);
+
+        // Then
+        assertNotNull(nonExistentPerson);
+        assertNull(nonExistentPerson.getId());
+        assertNull(nonExistentPerson.getFirstName());
+        assertNull(nonExistentPerson.getLastName());
+        assertNull(nonExistentPerson.getEmail());
+        assertNull(nonExistentPerson.getAge());
+    }
+    
 
 }
