@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PersonServiceImpl implements PersonService {
@@ -42,6 +43,14 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public PersonDto createPerson(PersonDto personDto) {
-        return personDto;
+        personDto.setId(UUID.randomUUID().toString());
+
+        Person person = PersonMapper.INSTANCE.dtoToEntity(personDto);
+        Person personCreated = repository.save(person);
+
+        PersonDto newPersonDto = PersonMapper.INSTANCE.entityToDto(personCreated);
+        newPersonDto.setAge(Period.between(newPersonDto.getBirthDate(), LocalDate.now())
+                .getYears());
+        return newPersonDto;
     }
 }

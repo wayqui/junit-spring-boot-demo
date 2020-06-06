@@ -36,4 +36,16 @@ public class PersonDto {
     public int hashCode() {
         return Objects.hash(id, firstName, lastName, birthDate, age, email);
     }
+
+    @Override
+    public String toString() {
+        return "PersonDto{" +
+                "id='" + id + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", birthDate=" + birthDate +
+                ", age=" + age +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import static com.wayqui.demo.utils.MockData.PERSONS_MOCKED;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -97,22 +98,30 @@ class PersonServiceTest {
     @Test
     public void postPersonTest() {
         // Given
-        PersonDto newPerson = PersonDto.builder()
+        PersonDto newPersonDto = PersonDto.builder()
                 .birthDate(LocalDate.of(1981, 1, 1))
                 .email("newuser@gmail.com")
                 .firstName("Maria")
                 .lastName("De Pedro")
-                .age(Period.between(LocalDate.of(1981, 1, 1), LocalDate.now())
-                        .getYears())
-                .id(UUID.randomUUID().toString())
                 .build();
 
         // When
-        PersonDto result = personService.createPerson(newPerson);
+        Person newPerson = PersonMapper.INSTANCE.dtoToEntity(newPersonDto);
+        newPerson.setId(UUID.randomUUID().toString());
+        when(repository.save(any(Person.class))).thenReturn(newPerson);
+        PersonDto createdPersonDto = personService.createPerson(newPersonDto);
 
         // Then
-        assertNotNull(result);
-        assertEquals(newPerson, result);
+        assertNotNull(createdPersonDto);
+        assertNotNull(createdPersonDto.getId());
+        assertEquals(newPerson.getId(), createdPersonDto.getId());
+        assertEquals(newPersonDto.getBirthDate(), createdPersonDto.getBirthDate());
+        assertEquals(newPersonDto.getEmail(), createdPersonDto.getEmail());
+        assertEquals(newPersonDto.getFirstName(), createdPersonDto.getFirstName());
+        assertEquals(newPersonDto.getLastName(), createdPersonDto.getLastName());
+        int expectedAge = Period.between(newPersonDto.getBirthDate(), LocalDate.now())
+                .getYears();
+        assertEquals(expectedAge, createdPersonDto.getAge());
     }
     
 
