@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.xml.ws.Response;
 import java.util.List;
 
 @RestController
@@ -46,7 +45,8 @@ public class PersonController {
     @PostMapping("/persons")
     public ResponseEntity<PersonResponse> createPerson(@RequestBody PersonRequest personRequest) {
         PersonDto personDto = PersonMapper.INSTANCE.requestToDto(personRequest);
-        return new ResponseEntity<>(PersonMapper.INSTANCE.dtoToResponse(personDto),
+        PersonDto result = personService.createPerson(personDto);
+        return new ResponseEntity<>(PersonMapper.INSTANCE.dtoToResponse(result),
                 HttpStatus.CREATED);
     }
 }

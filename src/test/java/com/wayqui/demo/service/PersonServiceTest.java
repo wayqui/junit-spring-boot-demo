@@ -93,6 +93,27 @@ class PersonServiceTest {
         assertNull(nonExistentPerson.getEmail());
         assertNull(nonExistentPerson.getAge());
     }
+
+    @Test
+    public void postPersonTest() {
+        // Given
+        PersonDto newPerson = PersonDto.builder()
+                .birthDate(LocalDate.of(1981, 1, 1))
+                .email("newuser@gmail.com")
+                .firstName("Maria")
+                .lastName("De Pedro")
+                .age(Period.between(LocalDate.of(1981, 1, 1), LocalDate.now())
+                        .getYears())
+                .id(UUID.randomUUID().toString())
+                .build();
+
+        // When
+        PersonDto result = personService.createPerson(newPerson);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(newPerson, result);
+    }
     
 
 }

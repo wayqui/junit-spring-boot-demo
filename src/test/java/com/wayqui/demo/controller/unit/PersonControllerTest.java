@@ -25,7 +25,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.wayqui.demo.utils.MockData.PERSONS_DTO_MOCKED;
 import static com.wayqui.demo.utils.MockData.PERSONS_MOCKED;
@@ -105,7 +108,14 @@ public class PersonControllerTest {
                 .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
 
         assertNotNull(personResponse);
-        assertEquals(PersonMapper.INSTANCE.dtoToResponse(personDto), personResponse);
+
+        assertEquals(personDto.getBirthDate(), personResponse.getBirthDate());
+        assertEquals(personDto.getEmail(), personResponse.getEmail());
+        assertEquals(personDto.getFirstName(), personResponse.getFirstName());
+        assertEquals(personDto.getLastName(), personResponse.getLastName());
+        int expectedAge = Period.between(personDto.getBirthDate(), LocalDate.now())
+                .getYears();
+        assertEquals(expectedAge, personResponse.getAge());
     }
 
     @Test
@@ -151,6 +161,8 @@ public class PersonControllerTest {
                 .accept(MediaType.APPLICATION_JSON);
 
         // When
+        PersonDto personDto = PersonMapper.INSTANCE.requestToDto(newPerson);
+        when(personService.createPerson(personDto)).thenReturn(personDto);
         MvcResult result = mockMvc.perform(builder).andExpect(status().isCreated()).andReturn();
 
         // Then
@@ -161,5 +173,8 @@ public class PersonControllerTest {
         assertEquals(newPerson.getEmail(), personResponse.getEmail());
         assertEquals(newPerson.getFirstName(), personResponse.getFirstName());
         assertEquals(newPerson.getLastName(), personResponse.getLastName());
+        int expectedAge = Period.between(newPerson.getBirthDate(), LocalDate.now())
+                .getYears();
+        //assertEquals(expectedAge, personResponse.getAge());
     }
 }

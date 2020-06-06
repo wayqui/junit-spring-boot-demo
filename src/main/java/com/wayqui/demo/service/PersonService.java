@@ -9,4 +9,6 @@ public interface PersonService {
     List<PersonDto> getAllPersons();
 
     PersonDto getPerson(String id);
+
+    PersonDto createPerson(PersonDto personDto);
 }
