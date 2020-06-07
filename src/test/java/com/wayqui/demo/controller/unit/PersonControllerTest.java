@@ -47,8 +47,7 @@ public class PersonControllerTest {
     @MockBean
     private PersonService personService;
 
-    private final Type listType = new TypeToken<ArrayList<PersonResponse>>() {
-    }.getType();
+    private final Type listType = new TypeToken<ArrayList<PersonResponse>>(){}.getType();
 
     @Test
     public void given_mock_data_when_get_all_persons_then_returns_ok() throws Exception {
@@ -175,6 +174,6 @@ public class PersonControllerTest {
         assertEquals(newPerson.getLastName(), personResponse.getLastName());
         int expectedAge = Period.between(newPerson.getBirthDate(), LocalDate.now())
                 .getYears();
-        //assertEquals(expectedAge, personResponse.getAge());
+        assertEquals(expectedAge, personResponse.getAge());
     }
 }

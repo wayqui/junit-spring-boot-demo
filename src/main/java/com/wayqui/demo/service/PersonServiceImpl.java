@@ -7,8 +7,6 @@ import com.wayqui.demo.mapper.PersonMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,12 +20,7 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public List<PersonDto> getAllPersons() {
         List<Person> persons = repository.findAll();
-        List<PersonDto> personsDto = PersonMapper.INSTANCE.entitiesToDtos(persons);
-        personsDto.forEach(dto -> {
-            int age = Period.between(dto.getBirthDate(), LocalDate.now()).getYears();
-            dto.setAge(age);
-        });
-        return personsDto;
+        return PersonMapper.INSTANCE.entitiesToDtos(persons);
     }
 
     @Override
@@ -36,7 +29,6 @@ public class PersonServiceImpl implements PersonService {
         PersonDto personDto = new PersonDto();
         if (personFound.isPresent()) {
             personDto = PersonMapper.INSTANCE.entityToDto(personFound.get());
-            personDto.setAge(Period.between(personDto.getBirthDate(), LocalDate.now()).getYears());
         }
         return personDto;
     }
@@ -48,9 +40,6 @@ public class PersonServiceImpl implements PersonService {
         Person person = PersonMapper.INSTANCE.dtoToEntity(personDto);
         Person personCreated = repository.save(person);
 
-        PersonDto newPersonDto = PersonMapper.INSTANCE.entityToDto(personCreated);
-        newPersonDto.setAge(Period.between(newPersonDto.getBirthDate(), LocalDate.now())
-                .getYears());
-        return newPersonDto;
+        return PersonMapper.INSTANCE.entityToDto(personCreated);
     }
 }

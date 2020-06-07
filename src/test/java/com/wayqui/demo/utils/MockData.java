@@ -38,10 +38,6 @@ public class MockData {
     );
 
     public static final List<PersonDto> PERSONS_DTO_MOCKED = PERSONS_MOCKED.stream()
-            .map(p -> {
-                PersonDto dto = PersonMapper.INSTANCE.entityToDto(p);
-                dto.setAge(Period.between(p.getBirthDate(), LocalDate.now()).getYears());
-                return dto;
-            })
+            .map(PersonMapper.INSTANCE::entityToDto)
             .collect(Collectors.toList());
 }

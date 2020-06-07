@@ -22,11 +22,11 @@ public class PersonRepositoryTest {
 
     @Test
     public void testFindAll() {
-        assertEquals(0, repository.findAll().size());
+        assertEquals(3, repository.findAll().size());
     }
 
     @Test
-    public void testFindOne() {
+    public void testFindOneThatDontExist() {
         // Given
         final String id = UUID.randomUUID().toString();
 
@@ -35,6 +35,18 @@ public class PersonRepositoryTest {
 
         // Then
         assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testFindOneThatExists() {
+        // Given
+        final String id = "3591eed5-3f51-4e24-9b3d-f7d4f18bc5d0";
+
+        // When
+        Optional<Person> result = repository.findById(id);
+
+        // Then
+        assertTrue(result.isPresent());
     }
 
 
@@ -56,7 +68,7 @@ public class PersonRepositoryTest {
         // Then
         assertNotNull(newPerson);
         assertEquals(person, newPerson);
-        assertEquals(1, repository.findAll().size());
+        assertEquals(4, repository.findAll().size());
         assertTrue(repository.findById(id).isPresent());
     }
 }

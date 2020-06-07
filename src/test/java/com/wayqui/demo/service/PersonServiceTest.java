@@ -96,7 +96,7 @@ class PersonServiceTest {
     }
 
     @Test
-    public void postPersonTest() {
+    public void createPersonTest() {
         // Given
         PersonDto newPersonDto = PersonDto.builder()
                 .birthDate(LocalDate.of(1981, 1, 1))
@@ -123,6 +123,27 @@ class PersonServiceTest {
                 .getYears();
         assertEquals(expectedAge, createdPersonDto.getAge());
     }
-    
 
+    @Test
+    public void createPersonWithNoDataTest() {
+        // Given
+        PersonDto newEmptyPersonDto = PersonDto.builder()
+                .build();
+
+        // When
+        Person newPerson = PersonMapper.INSTANCE.dtoToEntity(newEmptyPersonDto);
+        newPerson.setId(UUID.randomUUID().toString());
+        when(repository.save(any(Person.class))).thenReturn(newPerson);
+        PersonDto createdPersonDto = personService.createPerson(newEmptyPersonDto);
+
+        // Then
+        assertNotNull(createdPersonDto);
+        assertNotNull(createdPersonDto.getId());
+        assertEquals(newPerson.getId(), createdPersonDto.getId());
+        assertNull(createdPersonDto.getBirthDate());
+        assertNull(createdPersonDto.getEmail());
+        assertNull(createdPersonDto.getFirstName());
+        assertNull(createdPersonDto.getLastName());
+        assertNull(createdPersonDto.getAge());
+    }
 }

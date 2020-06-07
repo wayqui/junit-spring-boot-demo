@@ -3,6 +3,7 @@ package com.wayqui.demo.dto;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Objects;
 
 @Builder
@@ -16,8 +17,15 @@ public class PersonDto {
     private String firstName;
     private String lastName;
     private LocalDate birthDate;
+    @Getter(AccessLevel.NONE)
     private Integer age;
     private String email;
+
+    public Integer getAge() {
+        if (this.getBirthDate() != null)
+            this.age = Period.between(this.getBirthDate(), LocalDate.now()).getYears();
+        return this.age;
+    }
 
     @Override
     public boolean equals(Object o) {
