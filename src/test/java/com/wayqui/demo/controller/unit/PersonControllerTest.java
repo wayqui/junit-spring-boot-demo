@@ -1,7 +1,6 @@
 package com.wayqui.demo.controller.unit;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.wayqui.demo.controller.PersonController;
 import com.wayqui.demo.controller.request.PersonRequest;
@@ -44,6 +43,9 @@ public class PersonControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private Gson gson;
+
     @MockBean
     private PersonService personService;
 
@@ -64,9 +66,8 @@ public class PersonControllerTest {
                 .andReturn();
 
         // Then
-        List<PersonResponse> personsResponse = new GsonBuilder()
-                .create()
-                .fromJson(result.getResponse().getContentAsString(), listType);
+        List<PersonResponse> personsResponse = gson.fromJson(result.getResponse().getContentAsString(),
+                listType);
 
         assertEquals(PERSONS_DTO_MOCKED.size(), personsResponse.size());
 
@@ -103,8 +104,8 @@ public class PersonControllerTest {
                 .andReturn();
 
         // Then
-        PersonResponse personResponse = new GsonBuilder().create()
-                .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
+        PersonResponse personResponse = gson.fromJson(result.getResponse().getContentAsString(),
+                PersonResponse.class);
 
         assertNotNull(personResponse);
 
@@ -133,8 +134,8 @@ public class PersonControllerTest {
                 .andReturn();
 
         // Then
-        PersonResponse personResponse = new GsonBuilder().create()
-                .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
+        PersonResponse personResponse = gson.fromJson(result.getResponse().getContentAsString(),
+                PersonResponse.class);
         assertNotNull(personResponse);
         assertNull(personResponse.getId());
         assertNull(personResponse.getFirstName());
@@ -156,7 +157,7 @@ public class PersonControllerTest {
         RequestBuilder builder = MockMvcRequestBuilders
                 .post("/persons")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new Gson().toJson(newPerson))
+                .content(gson.toJson(newPerson))
                 .accept(MediaType.APPLICATION_JSON);
 
         // When
@@ -165,8 +166,8 @@ public class PersonControllerTest {
         MvcResult result = mockMvc.perform(builder).andExpect(status().isCreated()).andReturn();
 
         // Then
-        PersonResponse personResponse = new GsonBuilder().create()
-                .fromJson(result.getResponse().getContentAsString(), PersonResponse.class);
+        PersonResponse personResponse = gson.fromJson(result.getResponse().getContentAsString(),
+                PersonResponse.class);
         assertNotNull(personResponse);
         assertEquals(newPerson.getBirthDate(), personResponse.getBirthDate());
         assertEquals(newPerson.getEmail(), personResponse.getEmail());
