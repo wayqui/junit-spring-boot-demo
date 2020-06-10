@@ -23,15 +23,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.lang.reflect.Type;
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static com.wayqui.demo.utils.MockData.PERSONS_DTO_MOCKED;
-import static com.wayqui.demo.utils.MockData.PERSONS_MOCKED;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.from;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -71,21 +71,16 @@ public class PersonControllerTest {
 
         assertEquals(PERSONS_DTO_MOCKED.size(), personsResponse.size());
 
-        PERSONS_MOCKED.forEach(personMocked -> {
+        PERSONS_DTO_MOCKED.forEach(personDtoMocked -> {
             Optional<PersonResponse> personFound = personsResponse
                     .stream()
-                    .filter(p -> p.getId().equals(personMocked.getId()))
+                    .filter(p -> p.getId().equals(personDtoMocked.getId()))
                     .findFirst();
-            assertTrue(personFound.isPresent());
+
+            assertThat(personFound.isPresent()).isTrue();
             PersonResponse personResponse = personFound.get();
-            assertEquals(personMocked.getBirthDate(), personResponse.getBirthDate());
-            assertEquals(personMocked.getId(), personResponse.getId());
-            assertEquals(personMocked.getEmail(), personResponse.getEmail());
-            assertEquals(personMocked.getFirstName(), personResponse.getFirstName());
-            assertEquals(personMocked.getLastName(), personResponse.getLastName());
-            int expectedAge = Period.between(personMocked.getBirthDate(), LocalDate.now())
-                    .getYears();
-            assertEquals(expectedAge, personResponse.getAge());
+
+            this.assertDtoEqualsResponse(personDtoMocked, personResponse);
         });
     }
 
@@ -107,15 +102,7 @@ public class PersonControllerTest {
         PersonResponse personResponse = gson.fromJson(result.getResponse().getContentAsString(),
                 PersonResponse.class);
 
-        assertNotNull(personResponse);
-
-        assertEquals(personDto.getBirthDate(), personResponse.getBirthDate());
-        assertEquals(personDto.getEmail(), personResponse.getEmail());
-        assertEquals(personDto.getFirstName(), personResponse.getFirstName());
-        assertEquals(personDto.getLastName(), personResponse.getLastName());
-        int expectedAge = Period.between(personDto.getBirthDate(), LocalDate.now())
-                .getYears();
-        assertEquals(expectedAge, personResponse.getAge());
+        this.assertDtoEqualsResponse(personDto, personResponse);
     }
 
     @Test
@@ -128,7 +115,8 @@ public class PersonControllerTest {
                 .accept(MediaType.APPLICATION_JSON);
 
         // When
-        when(personService.getPerson(nonExistentId)).thenReturn(new PersonDto());
+        PersonDto newPerson = new PersonDto();
+        when(personService.getPerson(nonExistentId)).thenReturn(newPerson);
         MvcResult result = mockMvc.perform(request)
                 .andExpect(status().isNotFound())
                 .andReturn();
@@ -136,12 +124,8 @@ public class PersonControllerTest {
         // Then
         PersonResponse personResponse = gson.fromJson(result.getResponse().getContentAsString(),
                 PersonResponse.class);
-        assertNotNull(personResponse);
-        assertNull(personResponse.getId());
-        assertNull(personResponse.getFirstName());
-        assertNull(personResponse.getLastName());
-        assertNull(personResponse.getEmail());
-        assertNull(personResponse.getAge());
+
+        this.assertDtoEqualsResponse(newPerson, personResponse);
     }
 
     @Test
@@ -168,13 +152,18 @@ public class PersonControllerTest {
         // Then
         PersonResponse personResponse = gson.fromJson(result.getResponse().getContentAsString(),
                 PersonResponse.class);
-        assertNotNull(personResponse);
-        assertEquals(newPerson.getBirthDate(), personResponse.getBirthDate());
-        assertEquals(newPerson.getEmail(), personResponse.getEmail());
-        assertEquals(newPerson.getFirstName(), personResponse.getFirstName());
-        assertEquals(newPerson.getLastName(), personResponse.getLastName());
-        int expectedAge = Period.between(newPerson.getBirthDate(), LocalDate.now())
-                .getYears();
-        assertEquals(expectedAge, personResponse.getAge());
+
+        this.assertDtoEqualsResponse(personDto, personResponse);
+    }
+
+    private void assertDtoEqualsResponse(PersonDto personDtoMocked, PersonResponse personResponse) {
+        assertThat(personDtoMocked)
+                .isNotNull()
+                .returns(personResponse.getId(), from(PersonDto::getId))
+                .returns(personResponse.getEmail(), from(PersonDto::getEmail))
+                .returns(personResponse.getFirstName(), from(PersonDto::getFirstName))
+                .returns(personResponse.getLastName(), from(PersonDto::getLastName))
+                .returns(personResponse.getBirthDate(), from(PersonDto::getBirthDate))
+                .returns(personResponse.getAge(), from(PersonDto::getAge));
     }
 }

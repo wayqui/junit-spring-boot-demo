@@ -17,7 +17,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.wayqui.demo.utils.MockData.PERSONS_MOCKED;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.from;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -33,31 +34,25 @@ class PersonServiceTest {
     @Test
     public void getAllPersonsTests() {
         // Given
-
         when(repository.findAll()).thenReturn(PERSONS_MOCKED);
 
         // When
         List<PersonDto> personsFound = personService.getAllPersons();
 
         // Then
-        assertNotNull(personsFound);
-        assertEquals(PERSONS_MOCKED.size(), personsFound.size());
+        assertThat(personsFound).isNotNull();
+        assertThat(personsFound.size()).isEqualTo(PERSONS_MOCKED.size());
 
         PERSONS_MOCKED.forEach(personMocked -> {
             Optional<PersonDto> personFound = personsFound
                     .stream()
                     .filter(p -> p.getId().equals(personMocked.getId()))
                     .findFirst();
-            assertTrue(personFound.isPresent());
+
+            assertThat(personFound.isPresent()).isTrue();
             PersonDto personDto = personFound.get();
-            assertEquals(personMocked.getBirthDate(), personDto.getBirthDate());
-            assertEquals(personMocked.getId(), personDto.getId());
-            assertEquals(personMocked.getEmail(), personDto.getEmail());
-            assertEquals(personMocked.getFirstName(), personDto.getFirstName());
-            assertEquals(personMocked.getLastName(), personDto.getLastName());
-            int expectedAge = Period.between(personMocked.getBirthDate(), LocalDate.now())
-                    .getYears();
-            assertEquals(expectedAge, personDto.getAge());
+
+            assertDtoEqualsToEntity(personDto, personMocked);
         });
     }
 
@@ -71,11 +66,11 @@ class PersonServiceTest {
         PersonDto personFound = personService.getPerson(aPerson.getId());
         
         // Then
-        assertNotNull(personFound);
-        int expectedAge = Period.between(aPerson.getBirthDate(), LocalDate.now())
-                .getYears();
-        assertEquals(expectedAge, personFound.getAge());
-        assertEquals(aPerson, PersonMapper.INSTANCE.dtoToEntity(personFound));
+        assertThat(personFound).isNotNull();
+        assertThat(PersonMapper.INSTANCE.dtoToEntity(personFound)).isEqualTo(aPerson);
+        assertThat(personFound.getAge())
+                .isEqualTo(Period.between(aPerson.getBirthDate(), LocalDate.now())
+                        .getYears());
     }
 
     @Test
@@ -87,12 +82,7 @@ class PersonServiceTest {
         PersonDto nonExistentPerson = personService.getPerson(nonExistentId);
 
         // Then
-        assertNotNull(nonExistentPerson);
-        assertNull(nonExistentPerson.getId());
-        assertNull(nonExistentPerson.getFirstName());
-        assertNull(nonExistentPerson.getLastName());
-        assertNull(nonExistentPerson.getEmail());
-        assertNull(nonExistentPerson.getAge());
+        assertThat(nonExistentPerson).isEqualTo(new PersonDto());
     }
 
     @Test
@@ -112,16 +102,7 @@ class PersonServiceTest {
         PersonDto createdPersonDto = personService.createPerson(newPersonDto);
 
         // Then
-        assertNotNull(createdPersonDto);
-        assertNotNull(createdPersonDto.getId());
-        assertEquals(newPerson.getId(), createdPersonDto.getId());
-        assertEquals(newPersonDto.getBirthDate(), createdPersonDto.getBirthDate());
-        assertEquals(newPersonDto.getEmail(), createdPersonDto.getEmail());
-        assertEquals(newPersonDto.getFirstName(), createdPersonDto.getFirstName());
-        assertEquals(newPersonDto.getLastName(), createdPersonDto.getLastName());
-        int expectedAge = Period.between(newPersonDto.getBirthDate(), LocalDate.now())
-                .getYears();
-        assertEquals(expectedAge, createdPersonDto.getAge());
+        assertDtoEqualsToEntity(createdPersonDto, newPerson);
     }
 
     @Test
@@ -137,13 +118,16 @@ class PersonServiceTest {
         PersonDto createdPersonDto = personService.createPerson(newEmptyPersonDto);
 
         // Then
-        assertNotNull(createdPersonDto);
-        assertNotNull(createdPersonDto.getId());
-        assertEquals(newPerson.getId(), createdPersonDto.getId());
-        assertNull(createdPersonDto.getBirthDate());
-        assertNull(createdPersonDto.getEmail());
-        assertNull(createdPersonDto.getFirstName());
-        assertNull(createdPersonDto.getLastName());
-        assertNull(createdPersonDto.getAge());
+        assertDtoEqualsToEntity(createdPersonDto, newPerson);
+    }
+
+    private void assertDtoEqualsToEntity(PersonDto personDto, Person person) {
+        assertThat(personDto)
+                .isNotNull()
+                .returns(person.getId(), from(PersonDto::getId))
+                .returns(person.getEmail(), from(PersonDto::getEmail))
+                .returns(person.getFirstName(), from(PersonDto::getFirstName))
+                .returns(person.getLastName(), from(PersonDto::getLastName))
+                .returns(person.getBirthDate(), from(PersonDto::getBirthDate));
     }
 }

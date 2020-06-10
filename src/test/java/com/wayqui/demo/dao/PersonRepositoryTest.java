@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
@@ -22,7 +22,7 @@ public class PersonRepositoryTest {
 
     @Test
     public void testFindAll() {
-        assertEquals(3, repository.findAll().size());
+        assertThat(repository.findAll().size()).isEqualTo(3);
     }
 
     @Test
@@ -34,7 +34,7 @@ public class PersonRepositoryTest {
         Optional<Person> result = repository.findById(id);
 
         // Then
-        assertFalse(result.isPresent());
+        assertThat(result.isPresent()).isFalse();
     }
 
     @Test
@@ -46,7 +46,7 @@ public class PersonRepositoryTest {
         Optional<Person> result = repository.findById(id);
 
         // Then
-        assertTrue(result.isPresent());
+        assertThat(result.isPresent()).isTrue();
     }
 
 
@@ -66,9 +66,8 @@ public class PersonRepositoryTest {
         Person newPerson = repository.save(person);
 
         // Then
-        assertNotNull(newPerson);
-        assertEquals(person, newPerson);
-        assertEquals(4, repository.findAll().size());
-        assertTrue(repository.findById(id).isPresent());
+        assertThat(newPerson).isNotNull().isEqualTo(person);
+        assertThat(repository.findAll().size()).isEqualTo(4);
+        assertThat(repository.findById(id).isPresent()).isTrue();
     }
 }

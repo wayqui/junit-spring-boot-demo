@@ -16,7 +16,8 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.from;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
@@ -36,9 +37,9 @@ public class PersonControllerTest {
                 .getForEntity("/persons", PersonResponse[].class);
 
         // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(numberOfRecordsInTestData, response.getBody().length);
+        assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().length).isEqualTo(numberOfRecordsInTestData);
     }
 
     @Test
@@ -51,34 +52,39 @@ public class PersonControllerTest {
                 .getForEntity("/persons/"+idNonExistentPerson, PersonResponse.class);
 
         // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertNull(response.getBody().getId());
-        assertNull(response.getBody().getAge());
-        assertNull(response.getBody().getLastName());
-        assertNull(response.getBody().getFirstName());
-        assertNull(response.getBody().getEmail());
-        assertNull(response.getBody().getBirthDate());
+        assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody())
+                .isNotNull()
+                .returns(null, from(PersonResponse::getId))
+                .returns(null, from(PersonResponse::getEmail))
+                .returns(null, from(PersonResponse::getFirstName))
+                .returns(null, from(PersonResponse::getLastName))
+                .returns(null, from(PersonResponse::getBirthDate))
+                .returns(null, from(PersonResponse::getAge));
     }
 
     @Test
     public void getAExistentPersonTest() {
         // Given
         String existentId = "5eff7a57-f5df-409b-8ba5-70644fb34ece";
+        String existentEmail = "alex@supertramp.com";
+        String existentFirstName = "Alex";
+        String existentLastName = "Supertramp";
 
         // When
         ResponseEntity<PersonResponse> response = restTemplate
                 .getForEntity("/persons/" + existentId, PersonResponse.class);
 
         // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(existentId, response.getBody().getId());
-        assertNotNull(response.getBody().getAge());
-        assertNotNull(response.getBody().getLastName());
-        assertNotNull(response.getBody().getFirstName());
-        assertNotNull(response.getBody().getEmail());
-        assertNotNull(response.getBody().getBirthDate());
+        assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody())
+                .isNotNull()
+                .returns(existentId, from(PersonResponse::getId))
+                .returns(existentEmail, from(PersonResponse::getEmail))
+                .returns(existentFirstName, from(PersonResponse::getFirstName))
+                .returns(existentLastName, from(PersonResponse::getLastName));
     }
 
     @Test
@@ -91,25 +97,25 @@ public class PersonControllerTest {
                 .lastName("García Márquez")
                 .build();
 
+        int calculatedAge = Period.between(newPerson.getBirthDate(), LocalDate.now()).getYears();
+
         // When
         ResponseEntity<PersonResponse> response = restTemplate
                 .postForEntity("/persons", newPerson, PersonResponse.class);
 
         // Then
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
 
         PersonResponse personCreated = response.getBody();
 
-        assertNotNull(personCreated.getId());
-        assertEquals(newPerson.getLastName(), personCreated.getLastName());
-        assertEquals(newPerson.getFirstName(), personCreated.getFirstName());
-        assertEquals(newPerson.getEmail(), personCreated.getEmail());
-        assertEquals(newPerson.getBirthDate(), personCreated.getBirthDate());
-
-        int expectedAge = Period.between(newPerson.getBirthDate(), LocalDate.now())
-                .getYears();
-        assertEquals(expectedAge, personCreated.getAge());
+        assertThat(personCreated)
+                .isNotNull()
+                .returns(newPerson.getEmail(), from(PersonResponse::getEmail))
+                .returns(newPerson.getFirstName(), from(PersonResponse::getFirstName))
+                .returns(newPerson.getLastName(), from(PersonResponse::getLastName))
+                .returns(newPerson.getBirthDate(), from(PersonResponse::getBirthDate))
+                .returns(calculatedAge, from(PersonResponse::getAge));
     }
 
     @Test
@@ -123,17 +129,19 @@ public class PersonControllerTest {
                 .postForEntity("/persons", newPerson, PersonResponse.class);
 
         // Then
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
+
+        assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
 
         PersonResponse personCreated = response.getBody();
 
-        assertNotNull(personCreated.getId());
-        assertNull(personCreated.getLastName());
-        assertNull(personCreated.getFirstName());
-        assertNull(personCreated.getEmail());
-        assertNull(personCreated.getBirthDate());
-        assertNull(personCreated.getAge());
+        assertThat(personCreated)
+                .isNotNull()
+                .returns(null, from(PersonResponse::getEmail))
+                .returns(null, from(PersonResponse::getFirstName))
+                .returns(null, from(PersonResponse::getLastName))
+                .returns(null, from(PersonResponse::getBirthDate))
+                .returns(null, from(PersonResponse::getAge));
     }
 
 }
